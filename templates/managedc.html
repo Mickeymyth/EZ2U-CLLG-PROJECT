@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage DC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="managedc-page manage-page">
+
+    <header class="navbar">
+        {% if session.get('username') %}
+            <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% else %}
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% endif %}
+        <div class="nav-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>
+            <a href="{{ url_for('support') }}" class="btn">Support</a>
+        </div>
+    </header>
+
+    <hr class="section-divider">
+
+    <div class="hamburger" onclick="toggleSidebar()">&#9776;</div>
+    <div class="sidebar">
+        <ul>
+            <br>
+            <li><a href="{{ url_for('dcmodule') }}"><span class="icon">DC</span>Delivery Challan</a></li>
+            <li><a href="{{ url_for('fssmodule') }}"><span class="icon">FS</span>FSS Samples</a></li>
+            {% if user_role == 'Admin' %}
+                <li><a href="{{ url_for('users') }}"><span class="icon">UM</span>User Module</a></li>
+            {% endif %}
+            {% if user_role == 'Admin' %}
+                <li><a href="{{ url_for('vendormodule') }}"><span class="icon">VD</span>Vendor Module</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('dashboard') }}"><span class="icon">DB</span>Dashboard</a></li>
+            <li><a href="#" onclick="confirmLogout(event)"><span class="icon">LO</span>Log Out</a></li>
+        </ul>
+    </div>
+
+    <div class="manage-dc-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">
+                        {% if category == 'success' %}Success:{% elif category == 'error' %}Error:{% else %}Info:{% endif %} {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if message %}
+            <div class="message success">{{ message }}</div>
+        {% endif %}
+
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+
+        {% if user_role != 'Admin' %}
+        <div class="management-section">
+            <h2>Search DC</h2>
+            <div class="form-wrapper">
+                <form method="POST" action="{{ url_for('managedc') }}">
+                    <label for="search_date">Date:</label>
+                    <input type="date" id="search_date" name="search_date">
+
+                    <label for="search_return_date">Date of Return:</label>
+                    <input type="date" id="search_return_date" name="search_return_date">
+
+                    <label for="search_receiver">Receiver:</label>
+                    <input type="text" id="search_receiver" name="search_receiver" placeholder="Enter receiver name">
+
+                    <label for="search_dc_number">DC Number:</label>
+                    <input type="text" id="search_dc_number" name="search_dc_number" placeholder="e.g., PKT-1">
+
+                    <input type="hidden" name="action" value="search">
+                    <button type="submit" class="btn">Search</button>
+                </form>
+            </div>
+
+            {% if search_results %}
+                <table class="pending-dc-table">
+                    <tr>
+                        <th>DC Number</th>
+                        <th>Receiver Name</th>
+                        <th>Receiver Address</th>
+                        <th>Date Created</th>
+                        <th>Date of Return</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for dc in search_results %}
+                        <tr>
+                            <td>{{ dc.dc_number }}</td>
+                            <td>{{ dc.receiver_name }}</td>
+                            <td>{{ dc.receiver_address }}</td>
+                            <td>{{ dc.created_at }}</td>
+                            <td>{{ dc.expected_return_date }}</td>
+                            <td>{{ dc.status if dc.status else 'Pending' }}</td>
+                            <td>
+                                {% if dc.status == 'Approved' %}
+                                    <a href="{{ url_for('download_dc', dc_id=dc.id) }}" target="_blank" class="print-btn">Download PDF</a>
+                                {% else %}
+                                    <button type="button" class="print-btn" disabled>Download PDF</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if user_role != 'Admin' %}
+        <div class="management-section">
+            <h2>Approve DC</h2>
+            <p class="section-note">All pending delivery challans for approval</p>
+
+            {% if pending_dcs %}
+                <table class="pending-dc-table">
+                    <tr>
+                        <th>DC Number</th>
+                        <th>Sender Name</th>
+                        <th>Receiver Name</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                    {% for dc in pending_dcs %}
+                        <tr>
+                            <td>{{ dc.dc_number }}</td>
+                            <td>{{ dc.sender_name }}</td>
+                            <td>{{ dc.receiver_name }}</td>
+                            <td>{{ dc.department }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('managedc') }}" class="inline-form">
+                                    <input type="hidden" name="action" value="approve">
+                                    <input type="hidden" name="dc_id" value="{{ dc.id }}">
+                                    <button type="submit" class="approve-btn">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('managedc') }}" class="inline-form">
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="dc_id" value="{{ dc.id }}">
+                                    <button type="submit" class="reject-btn">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <div class="no-data">No pending delivery challans to approve</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if user_role == 'Admin' %}
+            <div class="management-section">
+                <h2>Delete DC</h2>
+                <div class="form-wrapper">
+                    <form method="POST" action="{{ url_for('managedc') }}">
+                        <label for="delete_dc_number">DC Number:</label>
+                        <input type="text" id="delete_dc_number" name="delete_dc_number" placeholder="e.g., PKT-1" required>
+
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn delete" onclick="return confirm('Are you sure you want to delete this DC? This action cannot be undone.');">Delete DC</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-250px';
+            } else {
+                sidebar.style.left = '0px';
+            }
+        }
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+
+        async function printDC(dcNumber) {
+            const printWindow = window.open('', '', 'width=900,height=600');
+
+            let dcData = null;
+            try {
+                const resp = await fetch(`/api/dc/${dcNumber}`);
+                if (!resp.ok) throw new Error('not found');
+                dcData = await resp.json();
+            } catch (err) {
+                alert('Could not load DC details');
+                return;
+            }
+
+            let itemsHtml = '';
+            if (dcData.items && dcData.items.length) {
+                itemsHtml += `<h3>Items</h3><table class="item-table"><tr><th>#</th><th>Name</th><th>HSN</th><th>Qty</th><th>Unit</th><th>Price</th><th>Description</th></tr>`;
+                dcData.items.forEach((it, idx) => {
+                    itemsHtml += `<tr><td>${idx+1}</td><td>${it.name}</td><td>${it.hsn || ''}</td><td>${it.quantity}</td><td>${it.unit}</td><td>${it.price || ''}</td><td>${it.description || ''}</td></tr>`;
+                });
+                itemsHtml += `</table>`;
+            }
+
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #000; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                        .header h1 { margin: 0; font-size: 24px; }
+                        .header p { margin: 5px 0; font-size: 14px; }
+                        .dc-info { margin: 20px 0; }
+                        .info-row { display: flex; margin-bottom: 8px; }
+                        .info-label { font-weight: bold; width: 180px; }
+                        .info-value { flex: 1; }
+                        .two-column { display: flex; justify-content: space-between; }
+                        .column { width: 48%; }
+                        .footer { margin-top: 50px; text-align: right; }
+                        .signature-line { margin-top: 40px; border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 10px; }
+                        .item-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        .item-table th, .item-table td { border: 1px solid #000; padding: 6px; text-align: left; }
+                        .item-table th { background-color: #f0f0f0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Delivery Challan</h1>
+                        <p>Company Name: P K Textiles</p>
+                        <p>Address: 123 Industrial Ave, City</p>
+                        <p>GSTIN: 12ABCDE3456F7Z8</p>
+                        <p>Approval Document</p>
+                    </div>
+                    
+                    <div class="dc-info">
+                        <div class="info-row">
+                            <div class="info-label">DC Number:</div>
+                            <div class="info-value">${dcData.dc_number}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Date Created:</div>
+                            <div class="info-value">${dcData.created_at}</div>
+                        </div>
+                        <div class="two-column">
+                            <div class="column">
+                                <h4>From:</h4>
+                                <div class="info-row">
+                                    <div class="info-label">Name:</div>
+                                    <div class="info-value">${dcData.sender_name}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Address:</div>
+                                    <div class="info-value">${dcData.sender_address}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">GST:</div>
+                                    <div class="info-value">${dcData.sender_gst || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <h4>To:</h4>
+                                <div class="info-row">
+                                    <div class="info-label">Name:</div>
+                                    <div class="info-value">${dcData.receiver_name}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Address:</div>
+                                    <div class="info-value">${dcData.receiver_address}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">GST:</div>
+                                    <div class="info-value">${dcData.receiver_gst || 'N/A'}</div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-label">Phone:</div>
+                                    <div class="info-value">${dcData.receiver_phone || ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Department:</div>
+                            <div class="info-value">${dcData.department}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Dispatch Method:</div>
+                            <div class="info-value">${dcData.dispatch_method}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Remarks:</div>
+                            <div class="info-value">${dcData.remarks || ''}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Status:</div>
+                            <div class="info-value"><strong>${dcData.status}</strong></div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <div class="signature-line">Authorized Signature</div>
+                    </div>
+                    ${itemsHtml}
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+    </script>
+
+</body>
+</html>

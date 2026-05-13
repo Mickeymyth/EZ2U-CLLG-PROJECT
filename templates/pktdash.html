@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="pktdash-page">
+    <header class="navbar">
+        {% if session.get('username') %}
+            <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% else %}
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% endif %}
+        <div class="nav-buttons">
+            <a href="{{ url_for('support') }}" class="btn">Support</a>
+        </div>
+    </header>
+
+    <hr class="section-divider">
+
+    <div class="hamburger" onclick="toggleSidebar()">&#9776;</div>
+    <div class="sidebar">
+        <ul>
+            <br>
+            <li></li>
+            <li><a href="{{ url_for('dcmodule') }}"><span class="icon">DC</span>DC Module</a></li>
+            <li><a href="{{ url_for('fssmodule') }}"><span class="icon">FS</span>FSS Module</a></li>
+            {% if user_role == 'Admin' %}
+                <li><a href="{{ url_for('users') }}"><span class="icon">UM</span>User Module</a></li>
+            {% endif %}
+            {% if user_role == 'Admin' %}
+                <li><a href="{{ url_for('vendormodule') }}"><span class="icon">VD</span>Vendor Module</a></li>
+            {% endif %}
+            <li class="active"><span class="icon">DB</span>Dashboard</li>
+            <li><a href="#" onclick="confirmLogout(event)"><span class="icon">LO</span>Log Out</a></li>
+        </ul>
+    </div>
+
+    <section class="dashboard">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">
+                        {% if category == 'success' %}Success:{% elif category == 'error' %}Error:{% else %}Info:{% endif %} {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard-text">
+            <span class="hero-eyebrow">Your Workspace Made EZ2U</span>
+            <h1 id="greeting">Good Afternoon {{ username }},</h1>
+            <p>Welcome to your central dashboard — the place where you can easily monitor performance, manage different modules, and keep track of daily activities all in one convenient location. Providing you the tools, information, and control you need to manage operations effectively and maintain productivity.</p>
+            <div id="datetime"></div>
+        </div>
+    </section>
+
+    <section class="stats-cards">
+        <div class="stat-card dc-card-stat">
+            <div class="stat-icon">DC</div>
+            <div class="stat-content">
+                <h3>Total DCs Today</h3>
+                <p class="stat-number" id="total-dcs">0</p>
+                <span class="stat-label">Delivery Challans</span>
+            </div>
+        </div>
+        <div class="stat-card fss-card-stat">
+            <div class="stat-icon">FS</div>
+            <div class="stat-content">
+                <h3>Total FSS</h3>
+                <p class="stat-number" id="total-fss">0</p>
+                <span class="stat-label">FSS Samples</span>
+            </div>
+        </div>
+        <div class="stat-card user-card-stat">
+            <div class="stat-icon">US</div>
+            <div class="stat-content">
+                <h3>Total Users</h3>
+                <p class="stat-number" id="total-users">0</p>
+                <span class="stat-label">Registered Users</span>
+            </div>
+        </div>
+        <div class="stat-card vendor-card-stat">
+            <div class="stat-icon">VD</div>
+            <div class="stat-content">
+                <h3>Total Vendors</h3>
+                <p class="stat-number" id="total-vendors">0</p>
+                <span class="stat-label">Vendors</span>
+            </div>
+        </div>
+        <div class="stat-card return-card-stat">
+            <div class="stat-icon">RT</div>
+            <div class="stat-content">
+                <h3>Goods Returning Today</h3>
+                <p class="stat-number" id="total-returns">0</p>
+                <span class="stat-label">Expected Returns</span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-250px';
+            } else {
+                sidebar.style.left = '0px';
+            }
+        }
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting = 'Good night';
+            if (hour < 12) greeting = 'Good morning';
+            else if (hour < 17) greeting = 'Good afternoon';
+            else if (hour < 21) greeting = 'Good evening';
+            const username = '{{ username }}';
+            document.getElementById('greeting').textContent = greeting + ' ' + username + ',';
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('datetime').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/dashboard-stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('total-dcs').textContent = data.total_dcs || 0;
+                    document.getElementById('total-fss').textContent = data.total_fss || 0;
+                    document.getElementById('total-users').textContent = data.total_users || 0;
+                    document.getElementById('total-returns').textContent = data.total_returns || 0;
+                    document.getElementById('total-vendors').textContent = data.total_vendors || 0;
+                } else {
+                    document.getElementById('total-dcs').textContent = '0';
+                    document.getElementById('total-fss').textContent = '0';
+                    document.getElementById('total-users').textContent = '0';
+                    document.getElementById('total-returns').textContent = '0';
+                    document.getElementById('total-vendors').textContent = '0';
+                }
+            } catch (error) {
+                console.log('Stats API not available, using default values');
+                document.getElementById('total-dcs').textContent = '0';
+                document.getElementById('total-fss').textContent = '0';
+                document.getElementById('total-users').textContent = '0';
+                document.getElementById('total-returns').textContent = '0';
+                document.getElementById('total-vendors').textContent = '0';
+            }
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        fetchStats();
+    </script>
+</body>
+</html>

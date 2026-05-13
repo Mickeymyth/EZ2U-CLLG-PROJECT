@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New FSS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="addfss-page">
+    <header class="navbar">
+        {% if session.get('username') %}
+            <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% else %}
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% endif %}
+        <div class="nav-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>
+            <a href="{{ url_for('support') }}" class="btn">Support</a>
+        </div>
+    </header>
+
+    <hr class="section-divider">
+
+    <section class="create-dc">
+        <h1>Add New FSS</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">
+                        {% if category == 'success' %}Success:{% elif category == 'error' %}Error:{% else %}Info:{% endif %} {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('addfss') }}">
+            <div class="form-box">
+                <h2>FSS Details</h2>
+                <label for="design">Design:</label>
+                <input type="text" id="design" name="design" placeholder="Enter design" required>
+                <label for="color">Color:</label>
+                <input type="text" id="color" name="color" placeholder="Enter color" required>
+                <label for="customer">Customer:</label>
+                <input type="text" id="customer" name="customer" placeholder="Enter customer" required>
+            </div>
+            <button type="submit" class="add-btn">Submit</button>
+        </form>
+    </section>
+
+    <script>
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+    </script>
+</body>
+</html>

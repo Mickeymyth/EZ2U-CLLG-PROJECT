@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZ2U Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+
+    <header class="navbar">
+    {% if session.get('username') %}
+        <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+    {% else %}
+        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+    {% endif %}
+    <div class="nav-buttons">
+        <a href="{{ url_for('index') }}" class="btn">Home</a>
+        <a href="{{ url_for('support') }}" class="btn">Contact Us</a>
+    </div>
+</header>
+
+    <hr class="section-divider">
+
+    <div class="hamburger" onclick="toggleSidebar()">&#9776;</div>
+    <div class="sidebar">
+        <ul>
+            <br>
+            <li><a href="{{ url_for('index') }}"><span class="icon">HM</span>Home</a></li>
+            {% if session.get('username') %}
+                <li><a href="{{ url_for('dashboard') }}"><span class="icon">DB</span>Dashboard</a></li>
+                <li><a href="{{ url_for('dcmodule') }}"><span class="icon">DC</span>DC Module</a></li>
+                <li><a href="{{ url_for('fssmodule') }}"><span class="icon">FS</span>FSS Module</a></li>
+                {% if user_role == 'Admin' %}
+                    <li><a href="{{ url_for('users') }}"><span class="icon">UM</span>User Module</a></li>
+                {% endif %}
+                {% if user_role == 'Admin' %}
+                    <li><a href="{{ url_for('vendormodule') }}"><span class="icon">VD</span>Vendor Module</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('support') }}"><span class="icon">SP</span>Support</a></li>
+                <li><a href="#" onclick="confirmLogout(event)"><span class="icon">LO</span>Log Out</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}"><span class="icon">LI</span>Log In</a></li>
+                {% if session.get('role') == 'Admin' %}
+                    <li><a href="{{ url_for('vendormodule') }}"><span class="icon">VD</span>Vendor Module</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('support') }}"><span class="icon">SP</span>Support</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Login Section -->
+    <section class="login">
+        <div class="login-form">
+            <span class="login-badge">Welcome Back</span>
+            <h2>Log In</h2>
+            {% if error %}
+                <p class="login-error">{{ error }}</p>
+            {% endif %}
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit" class="btn">Log In</button>
+            </form>
+            <p class="login-note">Secure access for your EZ2U workspace</p>
+        </div>
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-250px';
+            } else {
+                sidebar.style.left = '0px';
+            }
+        }
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+    </script>
+
+</body>
+</html>

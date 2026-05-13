@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New DC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="createdc-page">
+    <header class="navbar">
+        {% if session.get('username') %}
+            <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% else %}
+            <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+        {% endif %}
+        <div class="nav-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>
+            <a href="{{ url_for('support') }}" class="btn">Support</a>
+        </div>
+    </header>
+
+    <script>
+        function addItemRow() {
+            const table = document.getElementById("itemTable");
+            const row = table.insertRow(-1);
+
+            row.innerHTML = `
+                <td><button type="button" class="delete-btn" onclick="deleteRow(this)">-</button></td>
+                <td><input type="text" name="item_name[]" placeholder="Item name"></td>
+                <td><input type="text" name="item_hsn[]" placeholder="HSN/SAC"></td>
+                <td><input type="number" name="item_qty[]" min="1" placeholder="Qty"></td>
+                <td>
+                    <select name="item_unit[]">
+                        <option>Nos</option>
+                        <option>Kg</option>
+                        <option>Box</option>
+                        <option>Mtr</option>
+                    </select>
+                </td>
+                <td><input type="text" name="item_price[]" inputmode="decimal" placeholder="Price"></td>
+                <td><input type="text" name="item_desc[]" placeholder="Description"></td>
+            `;
+        }
+
+        function deleteRow(btn) {
+            const table = document.getElementById("itemTable");
+            if (table.rows.length <= 2) {
+                alert("At least one item is required");
+                return;
+            }
+            btn.closest("tr").remove();
+        }
+    </script>
+
+    <hr class="section-divider">
+
+    <section class="create-dc">
+        <h1>Create New Delivery Challan</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-banner flash-{{ category }}">
+                        {% if category == 'success' %}Success:{% elif category == 'error' %}Error:{% else %}Info:{% endif %} {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('createdc') }}">
+            <div class="form-box">
+                <h2>Sender Details</h2>
+                <label for="sender_name">Name:</label>
+                <input type="text" id="sender_name" name="sender_name" value="{{ sender.name if sender else '' }}" readonly>
+                <label for="sender_address">Address:</label>
+                <textarea id="sender_address" name="sender_address" readonly>{{ sender.address if sender else '' }}</textarea>
+                <label for="sender_gst">GST Number:</label>
+                <input type="text" id="sender_gst" name="sender_gst" value="{{ sender.gst if sender else '' }}" readonly>
+                <label for="sender_phone">Phone Number:</label>
+                <input type="text" id="sender_phone" name="sender_phone" value="{{ sender.phone if sender else '' }}" readonly>
+            </div>
+
+            <div class="form-box">
+                <h2>Receiver Details</h2>
+                <label for="receiver_name">Name:</label>
+                <input type="text" id="receiver_name" name="receiver_name" list="receiver_names" placeholder="Enter receiver name" required>
+                <datalist id="receiver_names"></datalist>
+                <label for="receiver_address">Address:</label>
+                <textarea id="receiver_address" name="receiver_address" placeholder="Enter receiver address" required></textarea>
+                <label for="receiver_gst">GST Number:</label>
+                <input type="text" id="receiver_gst" name="receiver_gst" placeholder="Enter receiver GST Number">
+                <label for="receiver_phone">Phone Number:</label>
+                <input type="text" id="receiver_phone" name="receiver_phone" placeholder="Enter receiver phone number" required>
+            </div>
+
+            <div class="form-box">
+                <h2>Item Details</h2>
+
+                <table id="itemTable" class="item-table">
+                    <tr>
+                        <th></th>
+                        <th>Item Name</th>
+                        <th>HSN/SAC</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Price</th>
+                        <th>Description</th>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <button type="button" class="delete-btn" onclick="deleteRow(this)">-</button>
+                        </td>
+                        <td><input type="text" name="item_name[]" placeholder="Item name"></td>
+                        <td><input type="text" name="item_hsn[]" placeholder="HSN/SAC"></td>
+                        <td><input type="number" name="item_qty[]" min="1" placeholder="Qty"></td>
+                        <td>
+                            <select name="item_unit[]">
+                                <option>Nos</option>
+                                <option>Kg</option>
+                                <option>Box</option>
+                                <option>Mtr</option>
+                            </select>
+                        </td>
+                        <td><input type="text" name="item_price[]" inputmode="decimal" placeholder="Price"></td>
+                        <td><input type="text" name="item_desc[]" placeholder="Description"></td>
+                    </tr>
+                </table>
+                <button type="button" class="add-btn" onclick="addItemRow()">+ Add Item</button>
+            </div>
+
+            <div class="form-box">
+                <h2>Other Details</h2>
+                <label for="dc_number">DC Number:</label>
+                <input type="text" id="dc_number" name="dc_number" value="{{ dc_number }}" placeholder="Auto-generated" readonly>
+                <label for="department">Department:</label>
+                <select id="department" name="department" required>
+                    <option value="it">IT</option>
+                    <option value="sales">Production</option>
+                    <option value="marketing">Designing Studio</option>
+                    <option value="hr">Human Resources</option>
+                    <option value="finance">Others</option>
+                </select>
+                <label for="dispatch_method">Dispatched by:</label>
+                <select id="dispatch_method" name="dispatch_method" required>
+                    <option value="hand">By Hand</option>
+                    <option value="sales">Porter</option>
+                    <option value="marketing">Company Vehicle</option>
+                    <option value="finance">Others</option>
+                </select>
+                <label for="expected_return_date">Expected Date of return:</label>
+                <input type="date" id="expected_return_date" name="expected_return_date">
+                <label for="remarks">Remarks:</label>
+                <textarea id="remarks" name="remarks" placeholder="Any additional notes"></textarea>
+            </div>
+
+            <button type="submit" class="add-btn">Submit</button>
+        </form>
+    </section>
+
+    <script>
+        async function fillReceiverDetails() {
+            const nameInput = document.getElementById('receiver_name');
+            const receiverName = nameInput.value.trim();
+            if (!receiverName) return;
+
+            try {
+                const resp = await fetch(`/api/receiver?name=${encodeURIComponent(receiverName)}`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (data.address) document.getElementById('receiver_address').value = data.address;
+                if (data.gst) document.getElementById('receiver_gst').value = data.gst;
+                if (data.phone) document.getElementById('receiver_phone').value = data.phone;
+            } catch (err) {
+                console.log('Receiver lookup failed');
+            }
+        }
+
+        document.getElementById('receiver_name').addEventListener('blur', fillReceiverDetails);
+
+        async function loadNameOptions(endpoint, listId, query) {
+            try {
+                const resp = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`);
+                if (!resp.ok) return;
+                const names = await resp.json();
+                const listEl = document.getElementById(listId);
+                listEl.innerHTML = '';
+                names.forEach((name) => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    listEl.appendChild(option);
+                });
+            } catch (err) {
+                console.log('Name lookup failed');
+            }
+        }
+
+        document.getElementById('receiver_name').addEventListener('focus', () => {
+            loadNameOptions('/api/receiver-names', 'receiver_names', '');
+        });
+
+        document.getElementById('receiver_name').addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            loadNameOptions('/api/receiver-names', 'receiver_names', value);
+        });
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+    </script>
+</body>
+</html>

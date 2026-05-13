@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSS Label</title>
+    <style>
+        :root {
+            --label-w: 90mm;
+            --label-h: 50mm;
+            --ink: #1f3a5f;
+            --muted: #36526f;
+            --line: #9fb1c7;
+            --bg: #f7fbff;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #ffffff;
+            color: var(--ink);
+        }
+
+        .toolbar {
+            margin-bottom: 14px;
+        }
+
+        .print-btn {
+            border: 1px solid var(--line);
+            background: var(--bg);
+            color: var(--ink);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .label {
+            width: var(--label-w);
+            min-height: var(--label-h);
+            border: 2px solid var(--ink);
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+        }
+
+        .logo {
+            height: 24px;
+            width: auto;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.4px;
+        }
+
+        .row {
+            margin: 4px 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .label-key {
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        @media print {
+            @page {
+                size: 90mm 50mm;
+                margin: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none;
+            }
+
+            .label {
+                border-radius: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="print-btn" onclick="window.print()">Print Label</button>
+    </div>
+
+    <div class="label">
+        <div class="head">
+            <img class="logo" src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo">
+        </div>
+        <div class="row"><span class="label-key">Design:</span> {{ fss.design }}</div>
+        <div class="row"><span class="label-key">Color:</span> {{ fss.color }}</div>
+        <div class="row"><span class="label-key">Customer:</span> {{ fss.customer }}</div>
+    </div>
+</body>
+</html>

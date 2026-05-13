@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZ2U Landing Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="landing-page">
+
+    <header class="navbar">
+    {% if session.get('username') %}
+        <a href="{{ url_for('dashboard') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+    {% else %}
+        <a href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="EZ2U Logo" class="logo"></a>
+    {% endif %}
+    <div class="nav-buttons">
+        <a href="{{ url_for('login') }}" class="btn">Log in</a>
+        <a href="{{ url_for('support') }}" class="btn">Contact Us</a>
+    </div>
+</header>
+
+    <hr class="section-divider">
+
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-banner flash-{{ category }}">
+                    {% if category == 'success' %}Success:{% elif category == 'error' %}Error:{% else %}Info:{% endif %} {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-text">
+            <span class="hero-eyebrow">Industry Operations Simplified</span>
+            <h1>Simple problems deserve simple solutions.</h1>
+            <p>
+                EZ2U helps you run daily operations without chaos. Building simple solutions for simple problems, reduce repetitive tasks, and keep records organized so your team can focus on actual business growth.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ url_for('login') }}" class="cta-btn">Get Started</a>
+                <a href="{{ url_for('support') }}" class="ghost-btn">Talk to Support</a>
+            </div>
+            <div class="hero-metrics">
+                <div class="metric">
+                    <strong>Faster Workflows</strong>
+                    <span>Less manual effort</span>
+                </div>
+                <div class="metric">
+                    <strong>Cleaner Records</strong>
+                    <span>Better visibility</span>
+                </div>
+                <div class="metric">
+                    <strong>Fewer Mistakes</strong>
+                    <span>Consistent output</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="value-grid">
+        <article class="value-card">
+            <h3>What We Solve</h3>
+            <p>We help business owners simplify operations, reduce manual work, and use technology in a practical, affordable way.</p>
+        </article>
+        <article class="value-card">
+            <h3>Who It Helps</h3>
+            <p>Small & medium scale businesses that face everyday operational challenges and don't have time for complicated software. We help business owners who need tech solutions for their business in an affordable and fully customizable way.</p>
+        </article>
+        <article class="value-card">
+            <h3>How It Works</h3>
+            <p>1. Understand your problem</p>
+            <p>2. Design the solution</p>
+            <p>3. Approval & Changes</p>
+            <p>4. Build the solution (coding)</p>
+            <p>5. Deploy & Handover</p>
+            <p>6. Maintenance & Support</p>
+        </article>
+    </section>
+
+    <section class="landing-cta">
+        <h2>Ready to run smoother operations?</h2>
+        <p>Start with the tools your team can use from day one.</p>
+        <a href="{{ url_for('login') }}" class="cta-btn">Log In to Continue</a>
+    </section>
+
+</body>
+        </article>
+    </section>
+</body>
+</html>

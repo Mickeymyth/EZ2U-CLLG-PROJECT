@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery Challan</title>
+<style>
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    color: #1c1c1c;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .page {
+    border: 2px solid #1f3a5f;
+    padding: 16px;
+  }
+
+  .header {
+    display: table;
+    width: 100%;
+    border-bottom: 2px solid #1f3a5f;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .header-left,
+  .header-right {
+    display: table-cell;
+    vertical-align: middle;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .logo-area {
+    display: inline-table;
+    vertical-align: middle;
+  }
+
+  .logo {
+    height: 54px;
+    width: auto;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
+  .company-title {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f3a5f;
+    letter-spacing: 0.3px;
+  }
+
+  .doc-title {
+    font-size: 20px;
+    margin: 0;
+    color: #1f3a5f;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+  }
+
+  .doc-subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #3a4f69;
+    font-weight: 600;
+  }
+
+  .company-block {
+    border: 1px solid #9fb1c7;
+    background: #f7fbff;
+    padding: 10px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .details {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+
+  .details td {
+    width: 50%;
+    border: 1px solid #9fb1c7;
+    vertical-align: top;
+    padding: 10px;
+    line-height: 1.55;
+  }
+
+  .block-title {
+    font-weight: 700;
+    color: #1f3a5f;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #d1dbe7;
+    padding-bottom: 4px;
+  }
+
+  .line-label {
+    font-weight: 600;
+    color: #2d4666;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+  }
+
+  .items-table th,
+  .items-table td {
+    border: 1px solid #7f96b2;
+    padding: 7px 6px;
+    font-size: 11px;
+  }
+
+  .items-table th {
+    background: #e9f1fb;
+    color: #1f3a5f;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .items-table td {
+    text-align: center;
+  }
+
+  .items-table td:nth-child(2),
+  .items-table td:nth-child(7) {
+    text-align: left;
+  }
+
+  .notes {
+    margin-top: 12px;
+    border: 1px solid #9fb1c7;
+    background: #fcfdff;
+    padding: 10px;
+    min-height: 56px;
+  }
+
+  .notes-title {
+    font-weight: 700;
+    color: #1f3a5f;
+    margin-bottom: 6px;
+  }
+
+  .footer-sign {
+    margin-top: 24px;
+    text-align: right;
+  }
+
+  .sign-line {
+    display: inline-block;
+    width: 200px;
+    border-top: 1px solid #1f3a5f;
+    padding-top: 6px;
+    text-align: center;
+    color: #2d4666;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="header-left">
+        <div class="logo-area">
+          <img class="logo" src="{{ url_for('static', filename='ez2ulogo.png') }}" alt="Logo">
+          <span class="company-title">{{ company_name }}</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <h1 class="doc-title">DELIVERY CHALLAN</h1>
+        <div class="doc-subtitle">Challan No: {{ dc_number }}</div>
+      </div>
+    </div>
+
+    <div class="company-block">
+      <div><span class="line-label">Company Name:</span> {{ company_name }}</div>
+      <div><span class="line-label">Address:</span> {{ company_address }}</div>
+      <div><span class="line-label">GSTIN:</span> {{ company_gstin }}</div>
+    </div>
+
+    <table class="details">
+      <tr>
+        <td>
+          <div class="block-title">Bill To</div>
+          <div>{{ customer_name }}</div>
+          <div>{{ customer_address }}</div>
+          <div><span class="line-label">Phone:</span> {{ customer_phone }}</div>
+          <div><span class="line-label">GSTIN:</span> {{ customer_gstin }}</div>
+        </td>
+        <td>
+          <div class="block-title">Challan Details</div>
+          <div><span class="line-label">Challan Date:</span> {{ challan_date }}</div>
+          <div><span class="line-label">Department:</span> {{ department }}</div>
+          <div><span class="line-label">Dispatch Method:</span> {{ dispatch_method }}</div>
+          <div><span class="line-label">Expected Return Date:</span> {{ expected_return_date }}</div>
+        </td>
+      </tr>
+    </table>
+
+    <table class="items-table">
+      <tr>
+        <th>Sr No</th>
+        <th>Item Description</th>
+        <th>HSN/SAC</th>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Price</th>
+        <th>Description</th>
+      </tr>
+      {{ items_rows|safe }}
+    </table>
+
+    <div class="notes">
+      <div class="notes-title">Notes</div>
+      <div>{{ notes }}</div>
+    </div>
+
+    <div class="footer-sign">
+      <div class="sign-line">Authorized Signature</div>
+    </div>
+  </div>
+</body>
+</html>
